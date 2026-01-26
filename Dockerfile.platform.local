@@ -1,0 +1,26 @@
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+COPY ./apps/platform /app/apps/platform
+COPY .air.toml.platform /app/.air.toml
+COPY ./config /app/config
+# COPY ./repositories /app/repositories
+COPY ./db /app/db
+COPY ./helper /app/helper
+# COPY ./models /app/models
+COPY ./middleware /app/middleware
+# COPY ./migration /app/migration
+COPY go.work.platform /app/go.work
+
+
+# Set working directory to the specific service
+WORKDIR /app/apps/platform
+
+RUN go work sync && go mod tidy
+
+RUN go install github.com/air-verse/air@v1.62.0
+
+WORKDIR /app
+
+CMD ["air", "-c", ".air.toml"]

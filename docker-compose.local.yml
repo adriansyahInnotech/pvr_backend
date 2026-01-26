@@ -1,0 +1,44 @@
+services:
+  mqtt:
+    build:
+      context: .
+      dockerfile: Dockerfile.mqtt.local
+    container_name: pvr_mqtt
+    volumes:
+      - ./apps/mqtt:/app/apps/mqtt
+      - ./config:/app/config
+    env_file:
+      - .env.mqtt.local
+  
+  platfrom:
+    build:
+      context: .
+      dockerfile: Dockerfile.platform.local
+    container_name: pvr_platform
+    ports:
+      - 4002:4002
+    volumes:
+      - ./apps/platform:/app/apps/platform
+      - ./config:/app/config
+      - ./db:/app/db
+      - ./helper:/app/helper
+      - ./middleware:/app/middleware
+      # - ./models:/app/models
+    env_file:
+      - .env.platform.local
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-pvr
+    restart: always
+    environment:
+      POSTGRES_DB: pvr_platform
+      POSTGRES_USER: adriansyah
+      POSTGRES_PASSWORD: adriansyahganteng
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
