@@ -1,0 +1,34 @@
+# ==========================
+# Builder Stage
+# ==========================
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+COPY ./apps/amqp_iotda /app/apps/amqp_iotda
+COPY ./config /app/config
+COPY ./db /app/db
+COPY ./helper /app/helper
+COPY ./models /app/models
+COPY ./repository /app/repository
+COPY go.work.amqp_iotda /app/go.work
+
+WORKDIR /app/apps/amqp_iotda
+
+RUN apk add --no-cache git
+
+RUN go work sync
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o amqp_iotda .
+
+# ==========================
+# Runtime Stage
+# ==========================
+FROM alpine:3.22
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/amqp_iotda/amqp_iotda .
+
+CMD ["./amqp_iotda"]

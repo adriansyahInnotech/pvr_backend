@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  amqp_iotda:
+    build:
+      context: .
+      dockerfile: Dockerfile.amqp_iotda.prod
+    container_name: pvr_amqp_iotda
+    restart: unless-stopped
+    env_file:
+      - .env.amqp_iotda.prod
+    networks:
+      - pvr_network
+
+  platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.platform.prod
+    container_name: pvr_platform
+    restart: unless-stopped
+    ports:
+      - "4002:4002"
+    env_file:
+      - .env.platform.prod
+    depends_on:
+      - postgres
+    networks:
+      - pvr_network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-pvr
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pvr_platform
+      POSTGRES_USER: adriansyah
+      POSTGRES_PASSWORD: adriansyahganteng
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pvr_network
+
+volumes:
+  postgres_data:
+
+networks:
+  pvr_network:
+    driver: bridge

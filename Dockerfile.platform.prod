@@ -1,0 +1,38 @@
+# ==========================
+# Builder Stage
+# ==========================
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+COPY ./apps/platform /app/apps/platform
+COPY ./middleware /app/middleware
+COPY ./db /app/db
+COPY ./helper /app/helper
+COPY ./config /app/config
+COPY ./repository /app/repository
+COPY ./models /app/models
+COPY ./migration /app/migration
+COPY go.work.platform /app/go.work
+
+WORKDIR /app/apps/platform
+
+RUN apk add --no-cache git
+
+RUN go work sync
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o platform .
+
+# ==========================
+# Runtime Stage
+# ==========================
+FROM alpine:3.22
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/platform/platform .
+
+EXPOSE 4002
+
+CMD ["./platform"]
