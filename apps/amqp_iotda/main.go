@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"apps/amqp_iotda/routes"
 	"apps/amqp_iotda/services"
@@ -25,11 +26,11 @@ func main() {
 	// =========================
 
 	amqpClient, err := config.NewAMQPClient(
-		"d45409fb27.st1.iotda-app.ap-southeast-4.myhuaweicloud.com",
-		"43xpqtlE",
-		"GA1ii2qCUvG2vQTVLm1O8XE2Kmp0oVkM",
-		"f0768b08-1056-4acd-8d2d-0cd468e33163",
-		"DefaultQueue",
+		os.Getenv("AMQP_IOTDA_HOST"),
+		os.Getenv("AMQP_IOTDA_ACCESS_KEY"),
+		os.Getenv("AMQP_IOTDA_ACCESS_CODE"),
+		os.Getenv("AMQP_IOTDA_INSTANCE_ID"),
+		os.Getenv("AMQP_IOTDA_QUEUE"),
 	)
 
 	if err != nil {
