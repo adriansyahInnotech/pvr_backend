@@ -6,4 +6,6 @@ use (
     ./db
     ./helper
     ./config
+    ./repository
+    ./models
 )

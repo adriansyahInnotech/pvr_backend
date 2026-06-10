@@ -1,0 +1,10 @@
+go 1.24.2
+
+use (
+    ./apps/amqp_iotda
+    ./config
+	./db
+	./helper
+	./models
+	./repository
+)

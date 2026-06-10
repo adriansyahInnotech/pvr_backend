@@ -1,16 +1,16 @@
-FROM golang:1.24-alpine
+FROM golang:1.25-alpine
 
 WORKDIR /app
 
 COPY ./apps/platform /app/apps/platform
 COPY .air.toml.platform /app/.air.toml
 COPY ./config /app/config
-# COPY ./repositories /app/repositories
 COPY ./db /app/db
 COPY ./helper /app/helper
-# COPY ./models /app/models
+COPY ./models /app/models
+COPY ./repository /app/repository
 COPY ./middleware /app/middleware
-# COPY ./migration /app/migration
+COPY ./migration /app/migration
 COPY go.work.platform /app/go.work
 
 

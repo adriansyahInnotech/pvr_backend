@@ -1,0 +1,2 @@
+ALTER TABLE device_kafka 
+ADD COLUMN secreet VARCHAR(255) NULL;

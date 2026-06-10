@@ -1,0 +1,26 @@
+FROM golang:1.25-alpine
+
+WORKDIR /app
+
+COPY ./apps/amqp_iotda /app/apps/amqp_iotda
+COPY .air.toml.amqp_iotda /app/.air.toml
+COPY ./config /app/config
+COPY ./db /app/db
+COPY ./helper /app/helper
+COPY ./models /app/models
+COPY ./repository /app/repository
+COPY go.work.amqp_iotda /app/go.work
+
+
+# Set working directory to the specific service
+WORKDIR /app/apps/amqp_iotda
+
+RUN apk add --no-cache git
+
+RUN go work sync && go mod tidy
+
+RUN go install github.com/air-verse/air@v1.62.0
+
+WORKDIR /app
+
+CMD ["air", "-c", ".air.toml"]

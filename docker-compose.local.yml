@@ -1,14 +1,18 @@
 services:
-  mqtt:
+  amqp_iotda:
     build:
       context: .
-      dockerfile: Dockerfile.mqtt.local
-    container_name: pvr_mqtt
+      dockerfile: Dockerfile.amqp_iotda.local
+    container_name: pvr_amqp_iotda
     volumes:
-      - ./apps/mqtt:/app/apps/mqtt
+      - ./apps/amqp_iotda:/app/apps/amqp_iotda
       - ./config:/app/config
+      - ./db:/app/db
+      - ./helper:/app/helper
+      - ./models:/app/models
+      - ./repository:/app/repository
     env_file:
-      - .env.mqtt.local
+      - .env.amqp_iotda.local
   
   platfrom:
     build:
@@ -23,7 +27,9 @@ services:
       - ./db:/app/db
       - ./helper:/app/helper
       - ./middleware:/app/middleware
-      # - ./models:/app/models
+      - ./models:/app/models
+      - ./repository:/app/repository
+      - ./migration:/app/migration
     env_file:
       - .env.platform.local
     depends_on:

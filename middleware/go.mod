@@ -1,6 +1,6 @@
 module pvr_backend/middleware
 
-go 1.24.2
+go 1.25.5
 
 require (
 	github.com/casbin/casbin/v2 v2.108.0 // indirect

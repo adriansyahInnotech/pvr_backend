@@ -2,11 +2,15 @@ package main
 
 import (
 	"apps/platform/routes"
+	"apps/platform/services"
 	"context"
 	"log"
 	"os"
 	"pvr_backend/config"
 	"pvr_backend/db"
+	"pvr_backend/helper"
+	"pvr_backend/middleware"
+	"pvr_backend/repository"
 )
 
 func init() {
@@ -22,14 +26,30 @@ func main() {
 		}
 	}()
 
-	client := config.NewMQTTClient(os.Getenv("RABBITMQ_MQTT_URL"), os.Getenv("RABBITMQ_MQTT_USERNAME"), os.Getenv("RABBITMQ_MQTT_PASSWORD"))
-	if err := client.Connect(); err != nil {
-		log.Fatalf("Failed to connect to broker: %v", err)
+	// =========================
+	// IOTDA SDK
+	// =========================
+
+	iotdaClient, err := config.NewIoTDAClient()
+
+	if err != nil {
+		panic(err)
 	}
+
+	log.Println("✅ IOTDA SDK CONNECTED")
+
+	helper := helper.NewHelper(iotdaClient, nil)
 
 	app := config.LoadConfigApp()
 
-	routes.NewRoutes(client).Routes(app)
+	middleware := middleware.NewMiddlware()
+
+	platformRepository := repository.NewPlatformRepository()
+	authRepository := repository.NewAuthRepository()
+
+	allservices := services.NewServices(helper, platformRepository, authRepository, middleware)
+
+	routes.NewRoutes(helper, allservices, middleware).Routes(app)
 	log.Fatal(app.Listen(os.Getenv("APP_PORT")))
 
 }

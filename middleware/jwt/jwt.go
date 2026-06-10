@@ -39,10 +39,12 @@ func (s *Jwt) Handler() fiber.Handler {
 
 func (s *Jwt) CreateTokenJwt(claims *dto.CustomClaim) string {
 
+	now := time.Now().UTC()
+
 	claims.RegisteredClaims = jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		NotBefore: jwt.NewNumericDate(time.Now()),
+		ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
+		IssuedAt:  jwt.NewNumericDate(now),
+		NotBefore: jwt.NewNumericDate(now),
 		Issuer:    fmt.Sprintf("%s-%s", os.Getenv("APP_NAME"), os.Getenv("SERVICE_NAME")),
 		Subject:   "user-token",
 	}

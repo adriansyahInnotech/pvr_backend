@@ -1,21 +1,44 @@
 package dtos
 
-type Publish struct {
-	DeviceID string `json:"device_id"`
-	Message  string `json:"message"`
-}
+// type Publish struct {
+// 	DeviceID string `json:"device_id"`
+// 	Message  string `json:"message"`
+// }
+
+// type PublishPayload struct {
+// 	Cmd string `json:"cmd"`
+// }
 
 type PersonPublish struct {
-	SeqID    string     `json:"seqId"`
-	CallType string     `json:"callType"`
-	Info     InfoPerson `json:"info"`
+	Cmd  string       `json:"cmd"`
+	Data []InfoPerson `json:"Data"`
 }
 
 type InfoPerson struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	IdcardNum  string `json:"idcardNum"`
-	Blacklist  int    `json:"blacklist"`
-	Remark     string `json:"remark"`
-	ExpireTime string `json:"expireTime"`
+	Nisn string `json:"nisn"`
+	Name string `json:"name"`
+	Idx  uint   `json:"idx"`
 }
+
+// type RestorePayload struct {
+// 	PublishPayload
+// 	Data InfoRestore `json:"Data"`
+// }
+
+// type InfoRestore struct {
+// 	User   []UserRestore   `json:"user"`
+// 	Record []RecordRestore `json:"record"`
+// }
+
+// type UserRestore struct {
+// 	PersonID string `json:"person_id"`
+// 	Name     string `json:"name"`
+// 	Palm1    string `json:"palm_1"`
+// 	Palm2    string `json:"palm_2"`
+// }
+
+// type RecordRestore struct {
+// 	RecordID  string    `json:"record_id"`
+// 	PersonID  string    `json:"person_id"`
+// 	Timestamp time.Time `json:"timestamp"`
+// }
