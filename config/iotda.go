@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core/auth"
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core/auth/basic"
@@ -16,9 +17,9 @@ func NewIoTDAClient() (*iotda.IoTDAClient, error) {
 
 	credentials, err := basic.
 		NewCredentialsBuilder().
-		WithAk("HPUAVLKXCF9DLINH1GSI").
-		WithSk("DnOrCwhzGBnkvu4nT7xXXsIpV5N3kdBdWjDUAlZ7").
-		WithProjectId("019e15e534287864a97ed18e6e5bc19d"). // Project ID AP-Jakarta
+		WithAk(os.Getenv("IOTDA_AK")).
+		WithSk(os.Getenv("IOTDA_SK")).
+		WithProjectId(os.Getenv("IOTDA_PROJECT_ID")). // Project ID AP-Jakarta
 		WithDerivedPredicate(auth.GetDefaultDerivedPredicate()).
 		SafeBuild()
 
@@ -27,12 +28,12 @@ func NewIoTDAClient() (*iotda.IoTDAClient, error) {
 	}
 
 	// Buat Custom Region yang mengikat nama region "ap-southeast-4" dengan URL Instance Anda
-	apiEndpoint := "https://d45409fb27.st1.iotda-app.ap-southeast-4.myhuaweicloud.com"
+	apiEndpoint := os.Getenv("IOTDA_ENPOINT")
 	// customRegion := region.NewRegion("ap-southeast-4", apiEndpoint)
 
 	hcClient, err := iotda.
 		IoTDAClientBuilder().
-		WithRegion(region.NewRegion("ap-southeast-4", apiEndpoint)). // Gunakan WithRegion, bukan WithEndpoint
+		WithRegion(region.NewRegion(os.Getenv("IOTDA_REGION"), apiEndpoint)). // Gunakan WithRegion, bukan WithEndpoint
 		WithCredential(credentials).
 		SafeBuild()
 
