@@ -38,6 +38,8 @@ func (s *Routes) Routes(app *fiber.App) {
 	area.Use(otelfiber.Middleware(otelfiber.WithServerName(os.Getenv("SERVICE_NAME"))))
 	area.Use(s.middleware.JWT.Handler())
 	area.Post("/", s.controllers.Platform.AddArea)
+	area.Patch("/:area_id", s.controllers.Platform.UpdateArea)
+	area.Delete("/", s.controllers.Platform.DeleteArea)
 
 	device := app.Group("/api/device")
 	device.Post("/login", s.controllers.Auth.LoginDevice)

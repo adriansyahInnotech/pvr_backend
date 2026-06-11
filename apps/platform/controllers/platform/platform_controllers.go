@@ -3,6 +3,7 @@ package platform
 import (
 	"apps/platform/dtos"
 	"apps/platform/services/platform"
+	"errors"
 	"fmt"
 	"pvr_backend/helper"
 	jwtdto "pvr_backend/middleware/jwt/dto"
@@ -105,6 +106,53 @@ func (s *PlatformControllers) AddArea(c *fiber.Ctx) error {
 	}
 
 	data := s.service.AddArea(tracectx, dto)
+
+	return c.Status(data.StatusCode).JSON(data)
+
+}
+
+func (s *PlatformControllers) DeleteArea(c *fiber.Ctx) error {
+
+	tracectx := c.UserContext()
+	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracectx, "pvr_backend.platform.controller", "DeleteArea")
+	defer span.End()
+
+	dto := new(dtos.Area)
+
+	if err := c.BodyParser(dto); err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return c.Status(fiber.StatusBadRequest).JSON(s.helper.Response.JSONResponseError(fiber.StatusBadRequest, "gagal parsing body"))
+	}
+
+	data := s.service.DeleteArea(tracectx, dto)
+
+	return c.Status(data.StatusCode).JSON(data)
+
+}
+
+func (s *PlatformControllers) UpdateArea(c *fiber.Ctx) error {
+
+	tracectx := c.UserContext()
+	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracectx, "pvr_backend.platform.controller", "UpdateArea")
+	defer span.End()
+
+	areaID := c.Params("area_id")
+
+	if areaID == "" {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, errors.New("area id tidak boleh kosong"))
+		return c.Status(fiber.StatusBadRequest).JSON(s.helper.Response.JSONResponseError(fiber.StatusBadRequest, "data tidak valid"))
+	}
+
+	dto := new(dtos.Area)
+
+	if err := c.BodyParser(dto); err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return c.Status(fiber.StatusBadRequest).JSON(s.helper.Response.JSONResponseError(fiber.StatusBadRequest, "gagal parsing body"))
+	}
+
+	dto.AreaID = areaID
+
+	data := s.service.UpdateArea(tracectx, dto)
 
 	return c.Status(data.StatusCode).JSON(data)
 

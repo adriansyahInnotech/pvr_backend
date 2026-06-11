@@ -11,6 +11,7 @@ import (
 type AreaKafkaRepository interface {
 	WithTransaction(tx *gorm.DB) AreaKafkaRepository
 	Upsert(areaKafkaModel *models.AreaKafka) error
+	UpdateByAreaID(areaKafkaModel *models.AreaKafka) error
 	GetByAreaID(area_id string) (*models.AreaKafka, error)
 	GetManyByAreaID(area_id []string) (*[]models.AreaKafka, error)
 	Delete(area_id string) error
@@ -36,9 +37,20 @@ func (s *areaKafkaRepository) Upsert(areaKafkaModel *models.AreaKafka) error {
 
 	return s.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "npsn"}},
-		DoUpdates: clause.AssignmentColumns([]string{"name", "group_id_cloud"}),
+		DoUpdates: clause.AssignmentColumns([]string{"name", "group_id_cloud", "deleted_at"}),
 	}).CreateInBatches(&areaKafkaModel, 100).Error
 
+}
+
+func (s *areaKafkaRepository) UpdateByAreaID(areaKafkaModel *models.AreaKafka) error {
+	// Update attributes with `struct`, will only update non-zero fields
+	result := s.db.Model(&areaKafkaModel).Updates(areaKafkaModel)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (s *areaKafkaRepository) GetByAreaID(area_id string) (*models.AreaKafka, error) {

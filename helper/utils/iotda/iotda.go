@@ -306,6 +306,35 @@ func (h *IotdaUtils) CreateGroupOnHuawei(ctx context.Context, areaID string) (st
 }
 
 // ==============================================================================
+// FUNGSI UNTUK MENGHAPUS GROUP DI HUAWEI CLOUD
+// ==============================================================================
+
+func (h *IotdaUtils) DeleteGroupOnHuawei(ctx context.Context, groupID string) error {
+	_, span := h.jaegerTracer.StartSpan(ctx, "helper.iotda", "DeleteGroupOnHuawei")
+	defer h.jaegerTracer.EndSpanSafe(span)
+
+	if groupID == "" {
+		return fmt.Errorf("group ID tidak boleh kosong")
+	}
+
+	// Susun request berdasarkan SDK Huawei
+	request := &model.DeleteDeviceGroupRequest{
+		GroupId: groupID,
+	}
+
+	// Eksekusi penghapusan ke Cloud
+	_, err := h.client.DeleteDeviceGroup(request)
+	if err != nil {
+		h.jaegerTracer.RecordSpanError(span, err)
+		log.Printf("❌ [Huawei API] Gagal menghapus grup %s: %v", groupID, err)
+		return err
+	}
+
+	log.Printf("✅ Grup dengan ID %s berhasil dihapus dari Huawei Cloud", groupID)
+	return nil
+}
+
+// ==============================================================================
 // 2. FUNGSI MEMASUKKAN ALAT KE GRUP (PARALEL GOROUTINE)
 // ==============================================================================
 // Karena SDK Huawei Anda mengunci parameter DeviceId sebagai tunggal (string),

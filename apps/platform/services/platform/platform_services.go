@@ -22,6 +22,8 @@ import (
 type PlatformServices interface {
 	AddUserArea(tracerCtx context.Context, data *dtos.UserArea, areaID string) *dto.Response
 	AddArea(tracerCtx context.Context, data *dtos.Area) *dto.Response
+	DeleteArea(tracerCtx context.Context, data *dtos.Area) *dto.Response
+	UpdateArea(tracerCtx context.Context, data *dtos.Area) *dto.Response
 	AddDevice(tracerCtx context.Context, data *dtos.Device) *dto.Response
 	DeleteDevice(tracerCtx context.Context, data *[]dtos.DeleteDevice) *dto.Response
 	GetConnectionHuwawei(tracerCtx context.Context, sn string) *dto.Response
@@ -44,9 +46,18 @@ func (s *platformServices) AddArea(tracerCtx context.Context, data *dtos.Area) *
 	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracerCtx, "pvr_backend.platform.services", "Services.AddArea")
 	defer span.End()
 
+	newID, errCreate := s.helper.Utils.Iotda.CreateGroupOnHuawei(tracerCtx, data.AreaID)
+	if errCreate != nil {
+		log.Printf("⚠️ Gagal membuat grup Huawei untuk Area %s: %v", data.AreaID, errCreate)
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, errCreate)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed create group on huwawei")
+
+	}
+
 	areaKafkaModel := models.AreaKafka{
-		NPSN: data.AreaID,
-		Name: data.Name,
+		NPSN:         data.AreaID,
+		Name:         data.Name,
+		GroupIDCloud: newID,
 	}
 
 	if err := s.PlatformRepository.AreaKafka.Upsert(&areaKafkaModel); err != nil {
@@ -59,7 +70,60 @@ func (s *platformServices) AddArea(tracerCtx context.Context, data *dtos.Area) *
 
 }
 
-// // user area
+func (s *platformServices) DeleteArea(tracerCtx context.Context, data *dtos.Area) *dto.Response {
+
+	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracerCtx, "pvr_backend.platform.services", "Services.Delete")
+	defer span.End()
+
+	areaKafkaModel, err := s.PlatformRepository.AreaKafka.GetByAreaID(data.AreaID)
+	if err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed delete group on cloud")
+	}
+
+	if err := s.helper.Utils.Iotda.DeleteGroupOnHuawei(tracerCtx, areaKafkaModel.GroupIDCloud); err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed delete group on cloud")
+	}
+
+	if err := s.PlatformRepository.AreaKafka.Delete(data.AreaID); err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed upsert")
+
+	}
+
+	return s.helper.Response.JSONResponseSuccess("", 0, 0, "success")
+
+}
+
+func (s *platformServices) UpdateArea(tracerCtx context.Context, data *dtos.Area) *dto.Response {
+	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracerCtx, "pvr_backend.platform.services", "Services.Update")
+	defer span.End()
+
+	areaKafkaModel, err := s.PlatformRepository.AreaKafka.GetByAreaID(data.AreaID)
+	if err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed delete group on cloud")
+	}
+
+	if areaKafkaModel.Name == "" {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusNotFound, "area id tidak di temukan")
+	}
+
+	areaKafkaModel.Name = data.Name
+
+	if err := s.PlatformRepository.AreaKafka.Upsert(areaKafkaModel); err != nil {
+		s.helper.Utils.JaegerTracer.RecordSpanError(span, err)
+		return s.helper.Response.JSONResponseError(fiber.StatusInternalServerError, "failed upsert")
+
+	}
+
+	return s.helper.Response.JSONResponseSuccess("", 0, 0, "berhasil")
+
+}
+
+// user area
 func (s *platformServices) AddUserArea(tracerCtx context.Context, data *dtos.UserArea, areaID string) *dto.Response {
 
 	_, span := s.helper.Utils.JaegerTracer.StartSpan(tracerCtx, "pvr_backend.platform.services", "Services.AddUserArea")
